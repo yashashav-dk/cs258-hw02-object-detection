@@ -1,0 +1,42 @@
+{
+  "_comment": "COCO JSON annotation schema placeholder. Replace this file with your actual Label Studio or CVAT export. The structure below is the minimum required by pycocotools.",
+  "info": {
+    "description": "HW02 Custom Object Detection Dataset",
+    "version": "1.0",
+    "year": 2026,
+    "contributor": "student",
+    "date_created": "2026-04-10"
+  },
+  "licenses": [
+    {
+      "id": 1,
+      "name": "Student Work",
+      "url": ""
+    }
+  ],
+  "categories": [
+    {"id": 0, "name": "person", "supercategory": "person"},
+    {"id": 2, "name": "car", "supercategory": "vehicle"},
+    {"id": 56, "name": "chair", "supercategory": "furniture"}
+  ],
+  "images": [
+    {
+      "id": 1,
+      "file_name": "example.jpg",
+      "width": 640,
+      "height": 480,
+      "license": 1
+    }
+  ],
+  "annotations": [
+    {
+      "id": 1,
+      "image_id": 1,
+      "category_id": 0,
+      "bbox": [100, 200, 150, 250],
+      "area": 37500,
+      "iscrowd": 0,
+      "segmentation": []
+    }
+  ]
+}
