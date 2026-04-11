@@ -15,7 +15,9 @@ dist/
 # Data (images/video gitignored, annotations committed)
 data/images/
 data/video/
-results/
+results/*
+!results/benchmark.json
+!results/benchmark_run2.json
 
 # Node.js / Next.js
 node_modules/
