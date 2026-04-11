@@ -28,7 +28,14 @@ def export_model(model_name: str, weight_file: str, output_dir: Path) -> None:
     for fmt in EXPORT_FORMATS:
         print(f"\n  -> Exporting to {fmt.upper()}...")
         try:
-            exported_path = model.export(format=fmt)
+            # ONNX export works on CPU; TensorRT engine export needs GPU.
+            # Pass device=0 explicitly for engine to avoid Ultralytics'
+            # select_device("") buggy path that sets CUDA_VISIBLE_DEVICES="".
+            kwargs = {"format": fmt}
+            if fmt == "engine":
+                kwargs["device"] = 0
+                kwargs["half"] = True  # FP16 for V100 Tensor Core speedup
+            exported_path = model.export(**kwargs)
             print(f"     Saved: {exported_path}")
         except Exception as e:
             print(f"     FAILED: {e}")
