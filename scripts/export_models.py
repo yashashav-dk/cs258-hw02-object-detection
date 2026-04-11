@@ -14,7 +14,7 @@ MODELS = {
     "yolov11m": "yolo11m.pt",
 }
 
-EXPORT_FORMATS = ["onnx", "engine"]
+EXPORT_FORMATS = ["onnx", "torchscript"]
 
 
 def export_model(model_name: str, weight_file: str, output_dir: Path) -> None:
@@ -28,19 +28,10 @@ def export_model(model_name: str, weight_file: str, output_dir: Path) -> None:
     for fmt in EXPORT_FORMATS:
         print(f"\n  -> Exporting to {fmt.upper()}...")
         try:
-            # ONNX export works on CPU; TensorRT engine export needs GPU.
-            # Pass device=0 explicitly for engine to avoid Ultralytics'
-            # select_device("") buggy path that sets CUDA_VISIBLE_DEVICES="".
-            kwargs = {"format": fmt}
-            if fmt == "engine":
-                kwargs["device"] = 0
-                kwargs["half"] = True  # FP16 for V100 Tensor Core speedup
-            exported_path = model.export(**kwargs)
+            exported_path = model.export(format=fmt)
             print(f"     Saved: {exported_path}")
         except Exception as e:
             print(f"     FAILED: {e}")
-            if fmt == "engine":
-                print("     TensorRT may not be installed. Install with: pip install tensorrt")
 
 
 def main() -> None:

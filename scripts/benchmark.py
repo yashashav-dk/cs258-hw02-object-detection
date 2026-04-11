@@ -24,7 +24,7 @@ MODELS = {
 RUNTIME_FILES = {
     "pytorch": ".pt",
     "onnx": ".onnx",
-    "tensorrt": ".engine",
+    "torchscript": ".torchscript",
 }
 
 WARMUP_RUNS = 3
