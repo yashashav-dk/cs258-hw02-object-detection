@@ -5,6 +5,30 @@
 **Status**: Draft
 **Input**: User description: "Provision GCP V100 VM, bootstrap environment, clone and deploy backend, annotate custom dataset, export models, run benchmark, capture results for submission"
 
+## Problem Statement
+
+**Edge Inference Benchmark for Bay Area Traffic Camera Deployment**
+
+Bay Area cities and Caltrans operate hundreds of public traffic cameras
+on highways, bridges, and intersections. Repurposing this existing
+infrastructure for real-time object detection would enable use cases
+like incident detection, traffic flow analysis, and pedestrian safety
+monitoring — but only if inference can run cheaply enough on edge
+hardware for 24/7 operation.
+
+This benchmark answers a focused deployment question: given footage
+from a single public Bay Area traffic camera, **which inference
+runtime (PyTorch, ONNX Runtime, TensorRT) delivers the best latency
+while preserving detection accuracy on vehicles and pedestrians?**
+
+**Data source**: Public HLS stream from a Caltrans / 511.org Bay Area
+traffic camera. Frames and a video clip are captured directly from
+the live stream using `scripts/capture_traffic_cam.py`. Annotations
+are created by the student in Roboflow (COCO JSON export).
+
+**Target classes** (subset of COCO 80):
+`person`, `car`, `bicycle`, `motorcycle`, `bus`, `truck`, `traffic light`
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Provision GPU Compute Environment (Priority: P1)
