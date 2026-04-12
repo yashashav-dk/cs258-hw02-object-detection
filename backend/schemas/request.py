@@ -18,7 +18,7 @@ class ModelName(str, Enum):
 class RuntimeName(str, Enum):
     PYTORCH = "pytorch"
     ONNX = "onnx"
-    TENSORRT = "tensorrt"
+    TORCHSCRIPT = "torchscript"
 
 
 class InputType(str, Enum):

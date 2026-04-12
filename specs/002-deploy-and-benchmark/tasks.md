@@ -74,13 +74,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Capture or gather at least 50 images locally containing COCO classes (person, car, chair, laptop, bottle, dog, etc.) — save to `~/hw02-dataset/images/`
-- [ ] T018 [US3] Record or gather one 30-60 second video clip locally with similar objects — save to `~/hw02-dataset/video/clip.mp4`
-- [ ] T019 [US3] Start Label Studio locally: `label-studio start`
-- [ ] T020 [US3] Create new project in Label Studio, import images from `~/hw02-dataset/images/`, select the "Object Detection with Bounding Boxes" template, configure COCO class labels
-- [ ] T021 [US3] Annotate all 50+ images with bounding boxes for visible COCO classes
-- [ ] T022 [US3] Export annotations in "COCO" format from Label Studio → save as `~/hw02-dataset/annotations.json`
-- [ ] T023 [US3] Upload images to VM: `gcloud compute scp --recurse ~/hw02-dataset/images yolo-v100:~/homework/data/ --project=cudabenchmarking --zone=us-west1-b` on local machine
+- [x] T017 [US3] Capture 60 frames from Caltrans D4 traffic cam (SR-123 @ 40th St, Emeryville) using `python3 scripts/capture_traffic_cam.py frames --url <m3u8> --output-dir ~/hw02-dataset/raw-frames --num-frames 60 --interval 10`
+- [x] T018 [US3] Record 60-second video clip from the same stream using `python3 scripts/capture_traffic_cam.py video --url <m3u8> --output ~/hw02-dataset/video/clip.mp4 --duration 60`
+- [ ] T019 [US3] Upload captured frames to Roboflow: project `hw02-object-detection`, drag-and-drop from `~/hw02-dataset/raw-frames/`
+- [ ] T020 [US3] In Roboflow, create bounding-box annotations using these exact COCO-standard class names: `person`, `car`, `bicycle`, `motorcycle`, `bus`, `truck`, `traffic light`
+- [ ] T021 [US3] Annotate all 50+ frames with bounding boxes (3-8 boxes per frame typical; skip tiny/occluded objects)
+- [ ] T022 [US3] Generate dataset version in Roboflow (preprocessing defaults, augmentations OFF) and export as COCO JSON → `~/Downloads/hw02-object-detection.v1i.coco.zip`; unzip to `~/Downloads/hw02-object-detection.v1i.coco/`
+- [ ] T022a [US3] Merge Roboflow export into flat dataset with COCO-standard category IDs: `python3 scripts/merge_roboflow_export.py --roboflow-dir ~/Downloads/hw02-object-detection.v1i.coco --output-dir ~/hw02-dataset`
+- [ ] T023 [US3] Upload images to VM: `gcloud compute scp --recurse ~/hw02-dataset/images yolo-v100:~/homework/data/ --project=cudabenchmarking --zone=us-west1-b` on local machine (the merge script writes annotated frames to `~/hw02-dataset/images/`)
 - [ ] T024 [US3] [P] Upload video to VM: `gcloud compute scp --recurse ~/hw02-dataset/video yolo-v100:~/homework/data/ --project=cudabenchmarking --zone=us-west1-b` on local machine
 - [ ] T025 [US3] [P] Upload annotations to VM: `gcloud compute scp ~/hw02-dataset/annotations.json yolo-v100:~/homework/data/annotations.json --project=cudabenchmarking --zone=us-west1-b` on local machine
 - [ ] T026 [US3] Validate annotations on VM: `cd ~/homework && source venv/bin/activate && python -c "from pycocotools.coco import COCO; c = COCO('data/annotations.json'); print(f'{len(c.getImgIds())} images, {len(c.getAnnIds())} annotations')"` — expect ≥50 images

@@ -8,7 +8,7 @@ interface ModelSelectorProps {
 }
 
 const MODELS = ["yolov8m", "yolov11m"];
-const RUNTIMES = ["pytorch", "onnx", "tensorrt"];
+const RUNTIMES = ["pytorch", "onnx", "torchscript"];
 
 export default function ModelSelector({
   model,

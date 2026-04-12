@@ -1,9 +1,38 @@
 # HW02 Object Detection — Inference Optimization
 
-Full-stack object detection inference optimization pipeline using YOLOv8m and YOLOv11m, with FastAPI backend (OpenAI-compatible API), Next.js frontend, and TensorRT + ONNX Runtime acceleration.
+Full-stack object detection inference optimization pipeline using YOLOv8m and YOLOv11m, with FastAPI backend (OpenAI-compatible API), Next.js frontend, and ONNX Runtime + TorchScript acceleration.
 
-**Course**: 258
+**Course**: CS 258 — Spring 2026
 **Assignment**: HW02 Object Detection (Option 2: Inference Optimization)
+
+**Full report**: [docs/report.md](docs/report.md)
+
+## TL;DR Results
+
+Benchmark on NVIDIA Tesla V100-SXM2-16GB, 60 SF dashcam frames,
+warm-up excluded, reproducibility verified (2 runs, identical mAP,
+<3% latency variance).
+
+```
+Model        Runtime       mAP@0.5   mAP@0.5:0.95   Latency (ms)  Speedup
+-------------------------------------------------------------------------
+yolov8m      pytorch        0.5744         0.4310         10.73    1.00x
+yolov8m      onnx           0.5744         0.4303         16.61    0.65x
+yolov8m      torchscript    0.5744         0.4303         11.25    0.95x
+yolov11m     pytorch        0.5495         0.4168         13.09    1.00x
+yolov11m     onnx           0.5726         0.4211         18.64    0.70x
+yolov11m     torchscript    0.5726         0.4211         12.38    1.06x
+```
+
+**Key finding**: ONNX Runtime is counterintuitively ~30-35% *slower*
+than eager PyTorch on this V100 + Ultralytics stack. TorchScript is
+approximately on par with PyTorch. mAP is preserved across runtimes.
+See [docs/report.md §5.3](docs/report.md) for analysis.
+
+**TensorRT was planned but pivoted**: TensorRT 10.4+ dropped Volta
+(sm_70) support, and our GCP V100 quota was the only available high-memory
+GPU. TorchScript is explicitly on the assignment's approved list and
+was used as the second acceleration method.
 
 ## What's Inside
 

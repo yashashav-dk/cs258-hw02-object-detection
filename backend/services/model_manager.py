@@ -17,7 +17,7 @@ MODEL_WEIGHTS = {
 RUNTIME_EXTENSIONS = {
     RuntimeName.PYTORCH: ".pt",
     RuntimeName.ONNX: ".onnx",
-    RuntimeName.TENSORRT: ".engine",
+    RuntimeName.TORCHSCRIPT: ".torchscript",
 }
 
 
