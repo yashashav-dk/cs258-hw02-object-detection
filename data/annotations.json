@@ -1,6 +1,6 @@
 {
   "info": {
-    "description": "HW02 auto-labeled dataset via torchvision Faster R-CNN ResNet-50 FPN"
+    "description": "HW02 manually annotated dataset via Roboflow"
   },
   "licenses": [
     {

@@ -1,18 +1,18 @@
-"""Capture frames or a video clip from a public traffic camera stream.
+"""Capture frames or a video clip from a local video file or camera stream.
 
-Supports HLS (.m3u8) and RTSP URLs. Uses ffmpeg under the hood.
+Supports local files, HLS (.m3u8), and RTSP URLs. Uses ffmpeg under the hood.
 
 Usage:
     # Extract 60 frames spaced 10 seconds apart (= 10 minutes of wall time)
     python scripts/capture_traffic_cam.py frames \
-        --url "https://wzmedia.dot.ca.gov/D4/XXX.stream/playlist.m3u8" \
+        --url ~/hw02-dataset/source.mp4 \
         --output-dir ~/hw02-dataset/raw-frames \
         --num-frames 60 \
         --interval 10
 
     # Record a 60-second clip for the frontend demo
     python scripts/capture_traffic_cam.py video \
-        --url "https://wzmedia.dot.ca.gov/D4/XXX.stream/playlist.m3u8" \
+        --url ~/hw02-dataset/source.mp4 \
         --output ~/hw02-dataset/video/clip.mp4 \
         --duration 60
 """
@@ -116,18 +116,18 @@ def capture_video(url: str, output: Path, duration: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Capture frames or a video clip from a public camera stream")
+    parser = argparse.ArgumentParser(description="Capture frames or a video clip from a local video file or stream")
     sub = parser.add_subparsers(dest="mode", required=True)
 
     p_frames = sub.add_parser("frames", help="Extract diverse frames for annotation")
-    p_frames.add_argument("--url", required=True, help="HLS (.m3u8) or RTSP stream URL")
+    p_frames.add_argument("--url", required=True, help="Local video file path or stream URL")
     p_frames.add_argument("--output-dir", type=Path, required=True)
     p_frames.add_argument("--num-frames", type=int, default=60)
     p_frames.add_argument("--interval", type=float, default=10.0, help="Seconds between frames")
     p_frames.add_argument("--prefix", default="frame")
 
     p_video = sub.add_parser("video", help="Record a short video clip for the demo")
-    p_video.add_argument("--url", required=True, help="HLS (.m3u8) or RTSP stream URL")
+    p_video.add_argument("--url", required=True, help="Local video file path or stream URL")
     p_video.add_argument("--output", type=Path, required=True)
     p_video.add_argument("--duration", type=int, default=60)
 

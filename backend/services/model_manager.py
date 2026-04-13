@@ -24,7 +24,7 @@ RUNTIME_EXTENSIONS = {
 class ModelManager:
     """Manages loading/unloading of YOLO models.
 
-    Only one model+runtime is loaded at a time to fit within T4 16GB VRAM.
+    Only one model+runtime is loaded at a time to fit within 16GB VRAM.
     """
 
     def __init__(self) -> None:

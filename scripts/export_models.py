@@ -1,6 +1,6 @@
-"""Export YOLOv8m and YOLOv11m models to ONNX and TensorRT formats.
+"""Export YOLOv8m and YOLOv11m models to ONNX and TorchScript formats.
 
-Run on GCP VM with T4 GPU and TensorRT installed:
+Run on GCP VM with GPU:
     python scripts/export_models.py
 """
 
@@ -18,7 +18,7 @@ EXPORT_FORMATS = ["onnx", "torchscript"]
 
 
 def export_model(model_name: str, weight_file: str, output_dir: Path) -> None:
-    """Download (if needed) and export a model to ONNX and TensorRT."""
+    """Download (if needed) and export a model to ONNX and TorchScript."""
     print(f"\n{'='*60}")
     print(f"Exporting {model_name}")
     print(f"{'='*60}")
@@ -35,7 +35,7 @@ def export_model(model_name: str, weight_file: str, output_dir: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Export YOLO models to ONNX and TensorRT")
+    parser = argparse.ArgumentParser(description="Export YOLO models to ONNX and TorchScript")
     parser.add_argument("--output-dir", type=Path, default=Path("models"), help="Output directory for exported models")
     args = parser.parse_args()
 
@@ -46,7 +46,7 @@ def main() -> None:
 
     print("\n" + "="*60)
     print("Export complete. Available model files:")
-    for ext in ["*.pt", "*.onnx", "*.engine"]:
+    for ext in ["*.pt", "*.onnx", "*.torchscript"]:
         for f in Path(".").glob(ext):
             print(f"  {f}")
     print("="*60)

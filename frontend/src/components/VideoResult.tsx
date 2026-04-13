@@ -19,9 +19,6 @@ export default function VideoResult({ response }: VideoResultProps) {
     ? getVideoResultUrl(response.annotated_video_url)
     : null;
 
-  // Per-frame latency data for bar chart
-  const frameTimes = response.results.map((_, i) => i);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">

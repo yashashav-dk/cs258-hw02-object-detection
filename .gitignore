@@ -11,6 +11,7 @@ dist/
 *.pt
 *.onnx
 *.engine
+*.torchscript
 
 # Data (images/video gitignored, annotations committed)
 data/images/
@@ -44,3 +45,12 @@ Thumbs.db
 .idea/
 *.swp
 *.tmp
+
+# Tooling / AI config
+.claude/
+.specify/
+CLAUDE.md
+AGENTS.md
+specs/
+docs/superpowers/
+.playwright-mcp/

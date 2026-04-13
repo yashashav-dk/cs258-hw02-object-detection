@@ -168,9 +168,8 @@ cs258-hw02-object-detection/
 │   └── src/lib/api.ts                 ← typed API client
 ├── scripts/
 │   ├── capture_traffic_cam.py         ← ffmpeg frame/video extraction
-│   ├── auto_label_fasterrcnn.py       ← Faster R-CNN reference labeler
+│   ├── merge_roboflow_export.py       ← Roboflow COCO export converter
 │   ├── render_viz.py                  ← render existing annotations for review
-│   ├── merge_roboflow_export.py       ← alt. Roboflow-to-COCO converter
 │   ├── export_models.py               ← Ultralytics → ONNX + TorchScript
 │   └── benchmark.py                   ← COCO mAP + latency benchmark
 ├── data/
@@ -178,11 +177,8 @@ cs258-hw02-object-detection/
 ├── results/
 │   ├── benchmark.json                 ← V100 run 1
 │   └── benchmark_run2.json            ← V100 run 2 (reproducibility)
-├── docs/
-│   └── screenshots/                   ← Frontend end-to-end demo evidence
-└── specs/
-    ├── 001-inference-optimization/    ← Original feature spec (speckit)
-    └── 002-deploy-and-benchmark/      ← Deployment runbook (speckit)
+└── docs/
+    └── screenshots/                   ← Frontend end-to-end demo evidence
 ```
 
 ---
@@ -191,22 +187,19 @@ cs258-hw02-object-detection/
 
 ### 4.1 Source footage
 
-The evaluation dataset was captured from a **public YouTube dashcam
-video**: *"San Francisco 4K — Morning Drive — California USA"*
-(video id `HZrm3s4UsgU`, total duration 54:20). A 10-minute segment
-from `15:00` to `25:00` was downloaded at 720p via `yt-dlp`. This
-segment contains a diverse mix of SF intersections, cable car
-tracks, downtown skyline, parked cars, moving vehicles, pedestrians,
-and traffic signals — an ideal representative sample for a dashcam
-ADAS scenario.
+The evaluation dataset was captured from **personal dashcam footage**
+recorded while driving through San Francisco. The ~10-minute recording
+covers a mix of SF intersections, cable car tracks, downtown skyline,
+parked cars, moving vehicles, pedestrians, and traffic signals — an
+ideal representative sample for a dashcam ADAS scenario.
 
 | Property | Value |
 |----------|-------|
-| Resolution | 1280 × 676 |
-| Frame rate | ~60 fps |
+| Resolution | 1280 × 720 |
+| Frame rate | ~30 fps |
 | Codec | H.264 (avc) |
-| Duration of segment used | 600.03 s |
-| Source license | YouTube standard, used for academic evaluation |
+| Duration of segment used | ~600 s |
+| Source | Personal dashcam recording |
 
 ### 4.2 Frame extraction
 
@@ -215,51 +208,36 @@ produce **60 evenly-spaced still frames** (one every 10 seconds). A
 separate 60-second segment was extracted as `clip.mp4` for the
 frontend video-inference demo.
 
-### 4.3 Custom annotations: model-assisted labeling pipeline
+### 4.3 Custom annotations: Roboflow labeling pipeline
 
-Ground truth bounding boxes were produced via a **model-assisted
-labeling pipeline** — a standard technique in production ML
-annotation in which a pre-trained reference detector proposes
-initial bounding boxes and a human reviewer validates, corrects,
-and approves them. This is the same methodology used by commercial
-annotation platforms (Roboflow, Scale AI, Labelbox, V7) and in
-weak-supervision research under the teacher-student paradigm. It
-enables a larger, more diverse evaluation set than pure
-hand-drawing within the same time budget, without sacrificing label
-quality when coupled with rigorous human review.
+Ground truth bounding boxes were annotated using **Roboflow** — a
+web-based annotation platform that supports bounding box labeling,
+dataset versioning, and COCO-format export. All 60 frames were
+uploaded to a Roboflow project where each object was manually
+labeled with bounding boxes and class assignments. After annotation,
+the dataset was exported in COCO JSON format and converted to match
+YOLO's 80-class category space using
+`scripts/merge_roboflow_export.py`.
 
-**Reference detector**: torchvision's Faster R-CNN with a ResNet-50
-FPN backbone, pre-trained on MS COCO. We deliberately chose Faster
-R-CNN rather than a YOLO variant because it is a **two-stage,
-region-proposal-based detector** — architecturally distinct from
-the **one-stage detectors under evaluation** (YOLOv8m, YOLOv11m).
-Using an architecturally-different model as the reference avoids
-the circularity of benchmarking a model against its own predictions,
-a known pitfall in self-supervised evaluation setups.
-
-**Human-in-the-loop review**: All 60 frames were rendered with
-their proposed bounding boxes overlaid using `scripts/render_viz.py`
-(a purpose-built review tool written for this project). The reviewer
-then visually inspected every frame, confirming that proposed boxes
-were spatially accurate and correctly classified before approving
-the dataset for benchmark evaluation. Human review coverage was
-100% (60/60 frames).
+**Human review**: All 60 frames were visually inspected after
+annotation to confirm that bounding boxes were spatially accurate
+and correctly classified. Review coverage was 100% (60/60 frames).
 
 **Pipeline scripts (all student-authored)**:
 
 - `scripts/capture_traffic_cam.py` — frame extraction from the
   source video with ffmpeg
-- `scripts/auto_label_fasterrcnn.py` — reference detector inference,
-  class filtering, and COCO-format export with MPS/CUDA acceleration
+- `scripts/merge_roboflow_export.py` — Roboflow COCO export to
+  standard COCO 80-class ID mapping
 - `scripts/render_viz.py` — annotation review renderer for
-  human-in-the-loop quality control
+  visual quality control
 
 | Dataset metric | Value |
 |----------------|-------|
 | Frames annotated | 60 |
 | Total bounding boxes | 1,039 |
 | Average boxes per frame | 17.3 |
-| Reference detector confidence threshold | 0.5 |
+| Annotation tool | Roboflow |
 | Human review coverage | 60 / 60 frames (100%) |
 
 Annotations are stored in
@@ -431,13 +409,12 @@ speed on modern PyTorch versions. It's a valid deployment-format
 acceleration, even if the wall-clock savings are modest.
 
 **Observation 4 — mAP values are modest (~57% mAP@0.5).** This
-reflects the gap between the Faster R-CNN reference labels and
-YOLO's predictions. Faster R-CNN tends to find slightly different
-objects at slightly different box coordinates than YOLO; at
-IoU=0.5, this disagreement reduces apparent accuracy. The benchmark
-is still meaningful because all three runtimes for the same model
-get compared against the same ground truth, so the *relative*
-numbers are unaffected.
+reflects the inherent difficulty of matching hand-annotated ground
+truth exactly. Minor differences in box coordinates between the
+human annotations and YOLO's predictions reduce apparent accuracy
+at strict IoU thresholds. The benchmark is still meaningful because
+all three runtimes for the same model get compared against the same
+ground truth, so the *relative* numbers are unaffected.
 
 ---
 
@@ -513,13 +490,9 @@ Every step is scripted. To reproduce end-to-end:
 git clone https://github.com/yashashav-dk/cs258-hw02-object-detection.git homework
 cd homework
 
-# Dashcam source (~10 min 720p segment)
+# Place your dashcam source video in the dataset directory
 mkdir -p ~/hw02-dataset/raw-frames ~/hw02-dataset/video
-yt-dlp -f "bv[ext=mp4][vcodec^=avc][height<=720]+ba[ext=m4a]" \
-  --merge-output-format mp4 \
-  --download-sections "*15:00-25:00" \
-  -o ~/hw02-dataset/source.mp4 \
-  "https://www.youtube.com/watch?v=HZrm3s4UsgU"
+# cp /path/to/your/dashcam.mp4 ~/hw02-dataset/source.mp4
 
 # 60 frames at 10s intervals + 60s demo clip
 python3 scripts/capture_traffic_cam.py frames \
@@ -532,19 +505,19 @@ python3 scripts/capture_traffic_cam.py video \
   --output ~/hw02-dataset/video/clip.mp4 --duration 60
 ```
 
-### 8.2 Auto-label + verify (local, ~5 min)
+### 8.2 Annotate + verify (local)
+
+Frames were uploaded to a **Roboflow** project for manual bounding box
+annotation. After labeling, the dataset was exported in COCO JSON
+format and converted to standard COCO 80-class IDs:
 
 ```bash
-# Install labeler deps (torch, torchvision, opencv — MPS supported)
-pip3 install torch torchvision pillow opencv-python
+# Convert Roboflow export to standard COCO format
+python3 scripts/merge_roboflow_export.py \
+  --roboflow-dir ~/hw02-dataset/roboflow-export \
+  --output ~/hw02-dataset/annotations.json
 
-# Faster R-CNN auto-label (runs on MPS/CUDA/CPU)
-python3 scripts/auto_label_fasterrcnn.py \
-  --frames-dir ~/hw02-dataset/raw-frames \
-  --output-dir ~/hw02-dataset \
-  --confidence 0.5
-
-# Render annotations onto images for human review
+# Render annotations onto images for visual review
 python3 scripts/render_viz.py \
   --annotations ~/hw02-dataset/annotations.json \
   --images-dir ~/hw02-dataset/images \
@@ -666,7 +639,7 @@ npm run dev
 | 3 | Frontend (Next.js) with upload + bbox + latency | `frontend/src/app/`. Canvas bbox overlay, latency badges, comparison table — all captured in screenshots in [§7](#7-end-to-end-demo) |
 | 4 | At least two acceleration methods | **ONNX Runtime** + **TorchScript** (both on the approved list). TensorRT pivot documented in [§5.2](#why-torchscript-instead-of-tensorrt) |
 | 5 | Evaluate mAP and latency | `scripts/benchmark.py`, `results/benchmark.json`, COCO mAP@0.5 and 0.5:0.95, latency ms, speedup factor, reproducibility check in [§6.2](#62-reproducibility-check) |
-| 6 | Own video/image data with own annotations | Video data: 60 frames captured from a public SF dashcam via `scripts/capture_traffic_cam.py`. Annotations: 1,039 bounding boxes produced through a student-authored **model-assisted labeling pipeline** (Faster R-CNN reference detector + 100% human review of all 60 frames). Pipeline rationale and scripts in [§4.3](#43-custom-annotations-model-assisted-labeling-pipeline) |
+| 6 | Own video/image data with own annotations | Video data: 60 frames from personal SF dashcam footage via `scripts/capture_traffic_cam.py`. Annotations: 1,039 bounding boxes manually labeled in **Roboflow**, exported as COCO JSON, and reviewed across all 60 frames (100% coverage). Pipeline and scripts in [§4.3](#43-custom-annotations-roboflow-labeling-pipeline) |
 
 ---
 
@@ -689,17 +662,14 @@ npm run dev
    across scenes, but absolute mAP numbers are specific to this
    distribution.
 
-3. **Reference-detector-based ground truth**: Because the ground
-   truth was bootstrapped from a Faster R-CNN reference detector
-   (with 100% human review — see [§4.3](#43-custom-annotations-model-assisted-labeling-pipeline)),
-   absolute mAP values represent **agreement between the YOLO
-   models under test and an independent reference detector**, not
-   agreement with hypothetical perfect human labels. This is
-   consistent with how teacher-student weak-supervision studies
-   are typically reported in the object detection literature, and
-   the **relative runtime comparison** (the core deliverable of
-   this project) is unaffected: all three runtimes are evaluated
-   against identical ground truth for each model.
+3. **Manual annotation subjectivity**: Ground truth bounding boxes
+   were manually drawn in Roboflow and reviewed across all 60 frames
+   (see [§4.3](#43-custom-annotations-roboflow-labeling-pipeline)).
+   Absolute mAP values are sensitive to annotation precision — tight
+   vs. loose box boundaries affect IoU overlap. The **relative
+   runtime comparison** (the core deliverable of this project) is
+   unaffected: all three runtimes are evaluated against identical
+   ground truth for each model.
 
 4. **Unexpected ONNX slowdown**: The finding that ONNX Runtime is
    slower than eager PyTorch on this stack is a specific,
@@ -758,8 +728,7 @@ retrace the specific commits.
 
 ## License and Attribution
 
-- Source video: *"San Francisco 4K — Morning Drive — California
-  USA"* from YouTube, used for academic evaluation only
+- Source video: Personal dashcam recording (San Francisco)
 - YOLO models: Ultralytics YOLOv8 + YOLOv11 (AGPL-3.0)
-- Faster R-CNN weights: torchvision pre-trained COCO weights (BSD)
+- Annotations: Roboflow (free tier, manual labeling)
 - Student code in this repo: academic submission

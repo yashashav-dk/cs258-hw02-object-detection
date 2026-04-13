@@ -108,7 +108,7 @@ async def _detect_video_bytes(
     model_name: ModelName,
     runtime: RuntimeName,
 ) -> DetectionResponse:
-    """Run video detection on raw bytes. Implemented in Phase 5 (US2)."""
+    """Run video detection on raw bytes."""
     # Lazy import to avoid circular dependency before video.py exists
     from backend.services.video import process_video
 
